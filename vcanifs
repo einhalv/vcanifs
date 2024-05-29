@@ -1,0 +1,41 @@
+#!/bin/bash
+if [[ $1 = "up" ]]
+then
+    shift
+    ifs=$*
+    for if in $ifs
+    do
+        if [[ -n `ip link show | grep $if":"` ]]
+        then
+            echo "$if already exists"
+        else
+            echo "adding $if"
+            sudo ip link add dev $if type vcan
+        fi
+        if [[ -z `ip link show $if up` ]]
+        then
+            echo "bringing $if up"
+            sudo ip link set $if up
+        else
+            echo "$if is already up"
+        fi
+    done
+elif [[ $1 = "down" ]]
+then
+    shift
+    ifs=$*
+    for if in $ifs
+    do
+        if [[ -z `ip link show | grep "$if:"` ]]
+        then
+            echo "$if not found"
+        else
+            echo "bringing $if down"
+            sudo ip link set $if down
+            sudo ip link delete $if
+        fi
+    done
+else
+    echo 'usage: vcanifs up|down {<vcan interface name>}'
+fi
+
